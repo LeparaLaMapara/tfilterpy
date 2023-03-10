@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='TFilterPy',
+    name='tfilterpy',
     version='0.0.1',
     author='Thabang L. Mashinini- Sekgoto, Lebogang M. Mashinini-Sekgoto, Palesa D. Mashinini-Sekgoto',
     author_email='thabangline@gmail.com',
