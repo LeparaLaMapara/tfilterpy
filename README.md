@@ -8,7 +8,9 @@ The **tfilterspy** package is a Python library for implementing Bayesian filter 
 
 You can install the **tfilterspy** package via pip, the Python package installer. Open a terminal and type the following command:
 
-
+  ```  
+        pip install tfilterspy
+  ```
 
 ### Supported Methods
 Currently, the following Bayesian filter algorithms are implemented in **tfilterspy**:
