@@ -1,5 +1,4 @@
 import numpy as np
-from numpy.linalg import inv
 
 class KalmanFilter:
     r"""
@@ -93,10 +92,10 @@ class KalmanFilter:
         assert x0.ndim == 1, "x0 should have 1 dimension"
         assert P0.ndim == 2, "P0 should have 2 dimensions"
 
-        self.F = F  # state transition matrix
-        self.H = H  # observation matrix
-        self.Q = Q  # process noise covariance matrix
-        self.R = R  # observation noise covariance matrix
+        self.F = F   # state transition matrix
+        self.H = H   # observation matrix
+        self.Q = Q   # process noise covariance matrix
+        self.R = R   # observation noise covariance matrix
         self.x = x0  # initial state estimate
         self.P = P0  # initial state covariance estimate
         
@@ -108,7 +107,7 @@ class KalmanFilter:
         self.x = np.dot(self.F, self.x)
         self.P = np.dot(np.dot(self.F, self.P), self.F.T) + self.Q
         
-    def update(self, z: np.ndarray):
+    def update(self, z: np.ndarray)-> None:
         """
         Performs the update step of the Kalman filter.
 
@@ -121,11 +120,11 @@ class KalmanFilter:
 
         y = z - np.dot(self.H, self.x)
         S = np.dot(np.dot(self.H, self.P), self.H.T) + self.R
-        K = np.dot(np.dot(self.P, self.H.T), inv(S))
+        K = np.dot(np.dot(self.P, self.H.T), np.linalg.inv(S))
         self.x = self.x + np.dot(K, y)
         self.P = np.dot((np.eye(self.P.shape[0]) - np.dot(K, self.H)), self.P)
         
-    def run(self, measurements: np.ndarray):
+    def run(self, measurements: np.ndarray)-> np.ndarray:
         """ 
         Args:
             measurements (np.ndarray): array of observations
@@ -140,8 +139,14 @@ class KalmanFilter:
         self.x = np.array(self.x)
         self.P = np.array(self.P)
         
-        state_estimates = np.stack((self.x for z in measurements), axis=0)
+        state_estimates = []
         for z in measurements:
             self.predict()
             self.update(z)
-        return state_estimates
+            state_estimates.append(self.x)
+        return np.array(state_estimates)
+    
+
+class ParticleFilter:
+    # TODO
+    pass
