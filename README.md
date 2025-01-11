@@ -2,48 +2,131 @@
   <img src="branding/logo/tfilters-logo.jpeg?" alt="tfilterspy logo"/>
 </p>
 
-The **tfilterspy** package is a Python library for implementing Bayesian filter algorithms, widely used mathematical tools in estimation theory and control engineering.
+# **TFilterPy** 🌀
 
-## Installation
+![PyPI Version](https://img.shields.io/pypi/v/tfilterpy?color=blue&label=PyPI&style=for-the-badge)
+![Tests](https://github.com/LeparaLaMapara/tfilterpy/actions/workflows/python-tests.yml/badge.svg?style=for-the-badge)
+![Build](https://github.com/LeparaLaMapara/tfilterpy/actions/workflows/publish.yml/badge.svg?style=for-the-badge)
+![License](https://img.shields.io/github/license/LeparaLaMapara/tfilterpy?color=green&style=for-the-badge)
 
-You can install the **tfilterspy** package via pip, the Python package installer. Open a terminal and type the following command:
+✨ **TFilterPy** is your new favorite Python library for implementing state-of-the-art Bayesian filtering techniques like Kalman Filters and Particle Filters. Whether you're working on noisy linear systems, nonlinear dynamics, or want to sound cool at a party when you say "I coded my own Kalman Filter," this is the library for you!
 
-  ```shell  
-  pip install tfilterspy
+---
+
+## **What’s Inside?** 📦
+
+🎉 **TFilterPy** offers:
+- **Kalman Filters** 🧮 – A classic but still iconic tool for linear filtering and smoothing.
+- **Particle Filters** 🎲 – Sampling-based estimators for nonlinear systems.
+- **Nonlinear Filters** 🔀 – For when your system decides to be complicated.
+- Extensible design for implementing more advanced filtering algorithms like Unscented Kalman Filters (UKF) and beyond.
+
+---
+
+## **Installation** 🚀
+
+Getting started is as easy as pie (or Pi)! 🍰
+
+```bash
+pip install tfilterpy
+```
+
+Want to contribute or tinker with the code? Clone the repo and install the development dependencies:
+
+```bash
+git clone https://github.com/LeparaLaMapara/tfilterpy.git
+cd tfilterpy
+pip install .[dev]
+```
+___________________________________________
+
+## Usage 🛠️
+Example 1: Using a Kalman Filter to tame noisy data 🤖
+
+```python
+import numpy as np
+from TFilterPy.state_estimation.linear_filters import DaskKalmanFilter
+
+# Define your system
+F = np.eye(2)
+H = np.eye(2)
+Q = np.eye(2) * 0.01
+R = np.eye(2) * 0.1
+x0 = np.zeros(2)
+P0 = np.eye(2)
+
+# Create a Kalman Filter
+kf = DaskKalmanFilter(F, H, Q, R, x0, P0)
+
+# Simulate some noisy measurements
+measurements = np.random.randn(100, 2)
+
+# Run the filter
+filtered_states = kf.run_filter(measurements)
+print(filtered_states.compute())
+```
+Check out more examples in the examples directory 📂.
+_____________________
+## Features 🌟
+
+  - Dask Support for large-scale filtering with parallelism 🏎️
+  - Modular structure for extensibility 🛠️
+  - Lightweight and easy to use 👌
+  - Designed for both linear and nonlinear systems 🔄
+
+___________________________________
+# Why TFilterPy? 💡
+
+Because Kalman deserves better branding! Instead of grappling with matrices and equations from scratch, use TFilterPy and focus on the fun part: tweaking models until they (hopefully) work. 🎉
+______________________________
+
+
+## Contributing 🤝
+
+We welcome contributions of all types:
+
+  - 🐛 Found a bug? Let us know in the Issues.
+  - 🌟 Want to add a feature? Fork the repo, make your changes, and create a pull request.
+  - 🧪 Testers needed! Write more test cases for improved coverage.
+
+### Development Setup
+  1. Clone the repo:
+  ```bash
+  git clone https://github.com/LeparaLaMapara/tfilterpy.git
   ```
+  2. Install dependencies:
+    ```bash
+  pip install .[dev]
+  ```
+  3. Run tests:
+     ```bash
+  pytest tests/
+  ```
+  _________________________
+## Future Plans 🔮
 
-### Supported Methods
-Currently, the following Bayesian filter algorithms are implemented in **tfilterspy**:
+  - Adding Unscented Kalman Filters (UKF) 🦄
+  - Implementing Gaussian Process Filters 📈
+  - Enhancing scalability with advanced parallelism ⚡
 
-- **Kalman Filters**: A class of linear estimators used in filtering and smoothing applications.
-- **Particle Filters**: A family of sequential Monte Carlo methods used for sampling from posterior distributions.
+________________
 
-More methods will be added in the future.
+## Documentation 📚
 
-## Usage
-Here's are examples of how to use **tfilterspy** to estimate the state of a noisy linear system using a Kalman filter in the  [example](https://github.com/LeparaLaMapara/tfilterpy/blob/main/examples/).
+Detailed documentation is available at: https://leparalamapara.github.io/tfilterpy
+(Yes, we made it look fancy. You're welcome. ✨)
+_____________________
 
-## Contributing
+## Support ❤️
 
-You can contribute in many ways:
+If this library made your life easier, consider:
 
-### Research & Development
-Please follow these steps when conducting research & development:
-1. Pick a problem from the [issues](https://github.com/LeparaLaMapara/tfilterpy/issues) page.
-2. Create a separate branch.
-3. Conduct research & engineering.
-4. When ready to merge, create a pull request.
+    Giving it a ⭐ on GitHub.
+    Telling your friends, colleagues, and cats about TFilterPy.
+_________________________
 
-### Report Bugs
+## License 📜
 
-If you are reporting a bug, please include:
-- Your operating system name and version.
-- Any details about your local setup that might be helpful in troubleshooting.
-- Steps to reproduce the bug.
+This project is licensed under the MIT License. Feel free to use it, modify it, or use it as a coaster.
 
-### Fix Bugs
-
-Look through the GitHub issues for bugs. Anything tagged with "bug" and "help wanted" is open to for contribution.
-
-## License
-This package is licensed under the MIT License.
+**Enjoy your filtering adventures with TFilterPy! 🎉🚀**
