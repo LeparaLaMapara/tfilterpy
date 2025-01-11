@@ -92,16 +92,18 @@ We welcome contributions of all types:
 ### Development Setup
   1. Clone the repo:
   ```bash
-  git clone https://github.com/LeparaLaMapara/tfilterpy.git
+    git clone https://github.com/LeparaLaMapara/tfilterpy.git
   ```
   2. Install dependencies:
-    ```bash
-  pip install .[dev]
+  ```bash
+    pip install .[dev]
   ```
   3. Run tests:
-     ```bash
-  pytest tests/
+  ```bash
+    pytest tests/
   ```
+
+  
   _________________________
 ## Future Plans 🔮
 
