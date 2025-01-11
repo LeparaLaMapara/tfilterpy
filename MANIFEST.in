@@ -1,0 +1,4 @@
+include README.md
+include LICENSE
+include examples/*.ipynb
+recursive-include TFilterPy *.py

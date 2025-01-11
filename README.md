@@ -65,7 +65,8 @@ measurements = np.random.randn(100, 2)
 filtered_states = kf.run_filter(measurements)
 print(filtered_states.compute())
 ```
-Check out more examples in the examples directory 📂.
+
+
 _____________________
 ## Features 🌟
 

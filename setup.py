@@ -1,36 +1,40 @@
 from setuptools import setup, find_packages
 
-
-with open('README.md', 'r', encoding='utf-8') as fh:
+with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name='tfilterpy',
-    version='0.0.3',
-    project_urls={
-        'Logo': 'https://raw.githubusercontent.com/LeparaLaMapara/tfilterpy/main/branding/logo/tfilters-logo.jpeg'
-    },
-    author='Thabang L. Mashinini- Sekgoto, Lebogang M. Mashinini-Sekgoto, Palesa D. Mashinini-Sekgoto',
-    author_email='thabangline@gmail.com',
-    description='This package is for Bayesian filtering models.',
+    name="tfilterpy",
+    version="1.0.0",
+    author="Thabang L. Mashinini-Sekgoto",
+    author_email="thabangline@gmail.com",
+    description="A Python package for Bayesian filtering models such as Kalman and Particle Filters.",
     long_description=long_description,
-    long_description_content_type='text/markdown',
-    # long_description=open('README.md').read(),
-    # long_description='This package is for Bayesian filtering models.',
-    url='https://github.com/leparalamapara/tfilterpy',
+    long_description_content_type="text/markdown",
+    url="https://leparalamapara.github.io/tfilterpy/",
+    project_urls={
+        "Documentation": "https://leparalamapara.github.io/tfilterpy/",
+        "Source": "https://github.com/LeparaLaMapara/tfilterpy",
+        "Tracker": "https://github.com/LeparaLaMapara/tfilterpy/issues",
+        "Logo": "https://raw.githubusercontent.com/LeparaLaMapara/tfilterpy/main/branding/logo/tfilters-logo.jpeg",
+    },
     packages=find_packages(),
     install_requires=[
-        'numpy',
-        # other dependencies
+        "numpy>=1.21",
+        "dask>=2023.5.0",
     ],
-    python_requires='>=3.6',
-    # Example section
-    examples=[
-        'examples/motion-estimation-kalmanfilters.ipynb'
-    ],
+    python_requires=">=3.8",
     classifiers=[
-        'Programming Language :: Python :: 3',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
     ],
+    package_data={
+        "": ["examples/*.ipynb"],  # Include Jupyter notebooks in the package
+    },
+    include_package_data=True,
 )
