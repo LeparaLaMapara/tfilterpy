@@ -14,14 +14,20 @@ readme = "README.md"
 dependencies = [
     "numpy>=1.21",
     "dask>=2023.5.0",
-    "scipy>=1.7",
-    "pytest>=7.0",
-    "flake8>=4.0.1"
+    "scipy>=1.7"
 ]
 requires-python = ">=3.8"
 
-[tool.setuptools]
-packages = ["TFilterPy", "TFilterPy.state_estimation", "TFilterPy.utils"]
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "flake8>=4.0.1"
+]
+
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["TFilterPy*"]
 
 [project.urls]
 Homepage = "https://github.com/LeparaLaMapara/tfilterpy"

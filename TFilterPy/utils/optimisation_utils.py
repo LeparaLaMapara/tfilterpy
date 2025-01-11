@@ -1,5 +1,6 @@
 import numpy as np
 import dask.array as da
+
 from TFilterPy.base_estimator import BaseEstimator
 
 
@@ -40,7 +41,7 @@ class ParameterEstimator(BaseEstimator):
         ValueError
             If an invalid estimation strategy is specified.
         """
-        super().__init__()  # Call BaseEstimator constructor
+        super().__init__(name="KalmanFilter")
         valid_strategies = {
             "residual_analysis",
             "mle",
