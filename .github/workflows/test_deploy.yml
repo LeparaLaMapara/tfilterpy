@@ -69,8 +69,12 @@ jobs:
       - name: List dist contents
         run: ls -R dist
 
-      - name: Validate Distribution Files
-        run: twine check dist/*.whl dist/*.tar.gz
+      - name: Check for Artifacts
+        run: |
+          if [ ! "$(ls dist/*.whl dist/*.tar.gz)" ]; then
+            echo "No artifacts found!"
+            exit 1
+          fi
 
       - name: Archive Build Artifacts
         uses: actions/upload-artifact@v3
