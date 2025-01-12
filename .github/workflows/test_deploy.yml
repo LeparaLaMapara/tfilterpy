@@ -77,8 +77,8 @@ jobs:
       - name: Archive Build Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: build-artifacts-${{ matrix.os }}-${{ matrix.python }}
-          path: dist
+          name: build-artifacts
+          path: dist/*.whl dist/*.tar.gz
 
   deploy:
     if: github.event_name == 'release'
@@ -101,10 +101,11 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v3
         with:
+          name: dist-artifacts
           path: dist
 
       - name: Validate Distribution Files
-        run: twine check dist/*
+        run: twine check dist/*.whl dist/*.tar.gz
 
       - name: Upload to PyPI
         env:
