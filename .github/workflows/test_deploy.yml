@@ -74,15 +74,11 @@ jobs:
       - name: List dist contents
         run: ls -R dist
 
-      - name: Validate Distribution Files
-        run: |
-          twine check dist/*
-
       - name: Archive Build Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: build-artifacts-${{ matrix.os }}-${{ matrix.python }}
-          path: dist/*
+          path: dist
 
   deploy:
     if: github.event_name == 'release'
@@ -107,9 +103,12 @@ jobs:
         with:
           path: dist
 
+      - name: Validate Distribution Files
+        run: twine check dist/*
+
       - name: Upload to PyPI
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         run: |
-          twine upload dist/*
+          twine upload dist/*.whl dist/*.tar.gz
