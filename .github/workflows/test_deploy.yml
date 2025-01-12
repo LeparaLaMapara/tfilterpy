@@ -71,9 +71,6 @@ jobs:
         run: |
           python -m build
 
-      - name: Validate Distribution Files
-        run: |
-          twine check dist/*
 
       - name: List dist contents
         run: ls -R dist
@@ -101,6 +98,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install twine
+
+      - name: Validate Distribution Files
+        run: |
+          twine check dist/*
 
       - name: Download Artifacts
         uses: actions/download-artifact@v3
