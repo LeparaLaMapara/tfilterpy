@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TFilterPy.state_estimation.linear_filters &#8212; tfilters 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for TFilterPy.state_estimation.linear_filters</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dask.array</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">da</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dask</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">TFilterPy.utils.optimisation_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParameterEstimator</span>
+
+
+<div class="viewcode-block" id="DaskKalmanFilter">
+<a class="viewcode-back" href="../../../TFilterPy.state_estimation.html#TFilterPy.DaskKalmanFilter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DaskKalmanFilter</span><span class="p">(</span><span class="n">ParameterEstimator</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Dask-based implementation of a Kalman Filter that supports distributed computing for</span>
+<span class="sd">    large datasets. This class extends the ParameterEstimator to estimate the process</span>
+<span class="sd">    noise covariance (Q) and observation noise covariance (R) while applying Kalman Filtering</span>
+<span class="sd">    on incoming measurements.</span>
+
+<span class="sd">    The Kalman Filter is a recursive algorithm that estimates the state of a linear dynamic</span>
+<span class="sd">    system from noisy measurements. This implementation leverages Dask to scale computations</span>
+<span class="sd">    across distributed systems.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    state_transition_matrix : np.ndarray or da.Array, shape (n_features, n_features)</span>
+<span class="sd">        The state transition matrix (F) representing how the system evolves between states.</span>
+
+<span class="sd">    observation_matrix : np.ndarray or da.Array, shape (n_observations, n_features)</span>
+<span class="sd">        The observation matrix (H) that maps the true state space into the observed space.</span>
+
+<span class="sd">    process_noise_cov : np.ndarray or da.Array, shape (n_features, n_features)</span>
+<span class="sd">        Covariance matrix (Q) representing the process noise.</span>
+
+<span class="sd">    observation_noise_cov : np.ndarray or da.Array, shape (n_observations, n_observations)</span>
+<span class="sd">        Covariance matrix (R) representing the observation noise.</span>
+
+<span class="sd">    initial_state : np.ndarray or da.Array, shape (n_features,)</span>
+<span class="sd">        Initial state vector (x0) of the system.</span>
+
+<span class="sd">    initial_covariance : np.ndarray or da.Array, shape (n_features, n_features)</span>
+<span class="sd">        Initial state covariance matrix (P0), representing initial uncertainty in the state.</span>
+
+<span class="sd">    estimation_strategy : str, optional, default=&quot;residual_analysis&quot;</span>
+<span class="sd">        The strategy for estimating Q and R. Can be one of:</span>
+<span class="sd">        - &quot;residual_analysis&quot;</span>
+<span class="sd">        - &quot;mle&quot;</span>
+<span class="sd">        - &quot;cross_validation&quot;</span>
+<span class="sd">        - &quot;adaptive_filtering&quot;</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If matrix dimensions do not conform to Kalman Filter requirements.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Welch, G., &amp; Bishop, G. (1995). An Introduction to the Kalman Filter.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">state_transition_matrix</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">da</span><span class="o">.</span><span class="n">Array</span><span class="p">],</span>
+        <span class="n">observation_matrix</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">da</span><span class="o">.</span><span class="n">Array</span><span class="p">],</span>
+        <span class="n">process_noise_cov</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">da</span><span class="o">.</span><span class="n">Array</span><span class="p">],</span>
+        <span class="n">observation_noise_cov</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">da</span><span class="o">.</span><span class="n">Array</span><span class="p">],</span>
+        <span class="n">initial_state</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">da</span><span class="o">.</span><span class="n">Array</span><span class="p">],</span>
+        <span class="n">initial_covariance</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">da</span><span class="o">.</span><span class="n">Array</span><span class="p">],</span>
+        <span class="n">estimation_strategy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;residual_analysis&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+
+        <span class="c1"># Initialize the parent class (ParameterEstimator)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">estimation_strategy</span><span class="p">)</span>
+
+        <span class="c1"># Input validation and conversion to Dask arrays</span>
+        <span class="k">if</span> <span class="n">state_transition_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">state_transition_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;State transition matrix (F) must be square.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">observation_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">state_transition_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Observation matrix (H) dimensions must be compatible with F.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">process_noise_cov</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">state_transition_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Process noise covariance (Q) dimensions must match F.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">observation_noise_cov</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">observation_noise_cov</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Observation noise covariance (R) must be square.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">initial_state</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">state_transition_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Initial state (x0) dimensions must match F.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">initial_covariance</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">state_transition_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Initial covariance (P0) dimensions must match F.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Convert to Dask arrays if necessary</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">F</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">da</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">state_transition_matrix</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="n">state_transition_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">state_transition_matrix</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+            <span class="k">else</span> <span class="n">state_transition_matrix</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">da</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">observation_matrix</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="n">observation_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">observation_matrix</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+            <span class="k">else</span> <span class="n">observation_matrix</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">da</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">process_noise_cov</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="n">process_noise_cov</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">process_noise_cov</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+            <span class="k">else</span> <span class="n">process_noise_cov</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">R</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">da</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">observation_noise_cov</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="n">observation_noise_cov</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">observation_noise_cov</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+            <span class="k">else</span> <span class="n">observation_noise_cov</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">da</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">initial_state</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="n">initial_state</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">initial_state</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+            <span class="k">else</span> <span class="n">initial_state</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">da</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">initial_covariance</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="n">initial_covariance</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">initial_covariance</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+            <span class="k">else</span> <span class="n">initial_covariance</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="DaskKalmanFilter.fit">
+<a class="viewcode-back" href="../../../TFilterPy.state_estimation.html#TFilterPy.DaskKalmanFilter.fit">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">da</span><span class="o">.</span><span class="n">Array</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;DaskKalmanFilter&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prepare the Kalman Filter by storing the measurements as a Dask array.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : np.ndarray or da.Array, shape (n_timesteps, n_observations)</span>
+<span class="sd">            Array of measurements over time.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        self : DaskKalmanFilter</span>
+<span class="sd">            The fitted Kalman Filter instance.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the input measurements are not 2-dimensional.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Measurements must be a 2D array. Received array with shape </span><span class="si">{</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">da</span><span class="o">.</span><span class="n">Array</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">X</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="DaskKalmanFilter.predict">
+<a class="viewcode-back" href="../../../TFilterPy.state_estimation.html#TFilterPy.DaskKalmanFilter.predict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">da</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform state estimation over all time steps using the Kalman Filter algorithm.</span>
+
+<span class="sd">        This method constructs a Dask computation graph to process the entire measurement</span>
+<span class="sd">        sequence in parallel using delayed execution.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        state_estimates : da.Array, shape (n_timesteps, n_features)</span>
+<span class="sd">            The estimated state at each time step.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        - The Kalman Filter operates in two steps: prediction and update.</span>
+<span class="sd">        - Predictions are made using the state transition matrix F.</span>
+<span class="sd">        - Updates are performed using the observation matrix H and Kalman Gain K.</span>
+<span class="sd">        - This method leverages Dask to parallelize the filter process over multiple time steps.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nd">@dask</span><span class="o">.</span><span class="n">delayed</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">kalman_step</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">measurements</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">P</span><span class="p">),</span> <span class="n">F</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="n">Q</span>
+
+            <span class="n">y</span> <span class="o">=</span> <span class="n">measurements</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+            <span class="n">S</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">P</span><span class="p">),</span> <span class="n">H</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="n">R</span>
+            <span class="n">K</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">H</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">da</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">S</span><span class="p">))</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+            <span class="n">I</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">P</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">chunks</span><span class="o">=</span><span class="n">P</span><span class="o">.</span><span class="n">chunks</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">I</span> <span class="o">-</span> <span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">H</span><span class="p">),</span> <span class="n">P</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
+
+        <span class="n">n_timesteps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">state_estimates</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_timesteps</span><span class="p">):</span>
+            <span class="n">delayed_result</span> <span class="o">=</span> <span class="n">kalman_step</span><span class="p">(</span>
+                <span class="n">i</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span>
+            <span class="p">)</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="n">dask</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">delayed_result</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">state_estimates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="n">state_estimates</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">state_estimates</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">state_estimates</span></div>
+
+
+<div class="viewcode-block" id="DaskKalmanFilter.run_filter">
+<a class="viewcode-back" href="../../../TFilterPy.state_estimation.html#TFilterPy.DaskKalmanFilter.run_filter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">measurements</span><span class="p">:</span> <span class="n">da</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply the Kalman Filter on measurements to compute state estimates and residuals.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        measurements : da.Array, shape (n_timesteps, n_observations)</span>
+<span class="sd">            Observed measurements over time.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        state_estimates : da.Array, shape (n_timesteps, n_features)</span>
+<span class="sd">            Estimated states over the measurement timeline.</span>
+<span class="sd">        residuals : da.Array, shape (n_timesteps, n_observations)</span>
+<span class="sd">            Difference between observed and predicted measurements (innovations).</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        - This function is used by parameter estimation strategies to compute residuals.</span>
+<span class="sd">        - Residuals are used for adaptive filtering and cross-validation strategies.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_timesteps</span> <span class="o">=</span> <span class="n">measurements</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">state_estimates</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">residuals</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">x</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_timesteps</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="n">P</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span>
+
+            <span class="n">y</span> <span class="o">=</span> <span class="n">measurements</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+            <span class="n">S</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">,</span> <span class="n">P</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">R</span>
+            <span class="n">K</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">da</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">S</span><span class="p">))</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+            <span class="n">I</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">P</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">chunks</span><span class="o">=</span><span class="n">P</span><span class="o">.</span><span class="n">chunks</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">I</span> <span class="o">-</span> <span class="n">da</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">),</span> <span class="n">P</span><span class="p">)</span>
+
+            <span class="n">state_estimates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">residuals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+        <span class="n">state_estimates</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">state_estimates</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">residuals</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">residuals</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">state_estimates</span><span class="p">,</span> <span class="n">residuals</span></div>
+
+
+<div class="viewcode-block" id="DaskKalmanFilter.estimate_parameters">
+<a class="viewcode-back" href="../../../TFilterPy.state_estimation.html#TFilterPy.DaskKalmanFilter.estimate_parameters">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">estimate_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">measurements</span><span class="p">:</span> <span class="n">da</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Estimate process (Q) and observation (R) noise covariances using the specified strategy.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        measurements : da.Array, shape (n_timesteps, n_observations)</span>
+<span class="sd">            Observed measurements over time.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Q : da.Array, shape (n_features, n_features)</span>
+<span class="sd">            Estimated process noise covariance matrix.</span>
+<span class="sd">        R : da.Array, shape (n_features, n_features)</span>
+<span class="sd">            Estimated observation noise covariance matrix.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        - This method calls the appropriate estimation strategy from the parent class.</span>
+<span class="sd">        - The available strategies include residual analysis, MLE, cross-validation,</span>
+<span class="sd">          and adaptive filtering.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">estimate_parameters</span><span class="p">(</span><span class="n">measurements</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">tfilters</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">TFilterPy</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Thabang Mashinin-Sekhoto, Lebogang Mashinini-Sekhoto, Palesa  Mashinini-Sekhoto.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

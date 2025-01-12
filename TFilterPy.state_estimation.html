@@ -38,17 +38,293 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
 </section>
-<section id="tfilterpy-state-estimation-linear-filters-module">
-<h2>TFilterPy.state_estimation.linear_filters module<a class="headerlink" href="#tfilterpy-state-estimation-linear-filters-module" title="Link to this heading">¶</a></h2>
+<section id="module-TFilterPy.state_estimation.linear_filters">
+<span id="tfilterpy-state-estimation-linear-filters-module"></span><h2>TFilterPy.state_estimation.linear_filters module<a class="headerlink" href="#module-TFilterPy.state_estimation.linear_filters" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="TFilterPy.state_estimation.linear_filters.DaskKalmanFilter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">TFilterPy.state_estimation.linear_filters.</span></span><span class="sig-name descname"><span class="pre">DaskKalmanFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_transition_matrix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observation_matrix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">process_noise_cov</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observation_noise_cov</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_covariance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimation_strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'residual_analysis'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/TFilterPy/state_estimation/linear_filters.html#DaskKalmanFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TFilterPy.state_estimation.linear_filters.DaskKalmanFilter" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="TFilterPy.utils.html#TFilterPy.utils.optimisation_utils.ParameterEstimator" title="TFilterPy.utils.optimisation_utils.ParameterEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterEstimator</span></code></a></p>
+<p>Dask-based implementation of a Kalman Filter that supports distributed computing for
+large datasets. This class extends the ParameterEstimator to estimate the process
+noise covariance (Q) and observation noise covariance (R) while applying Kalman Filtering
+on incoming measurements.</p>
+<p>The Kalman Filter is a recursive algorithm that estimates the state of a linear dynamic
+system from noisy measurements. This implementation leverages Dask to scale computations
+across distributed systems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state_transition_matrix</strong> (<em>np.ndarray</em><em> or </em><em>da.Array</em><em>, </em><em>shape</em><em> (</em><em>n_features</em><em>, </em><em>n_features</em><em>)</em>) – The state transition matrix (F) representing how the system evolves between states.</p></li>
+<li><p><strong>observation_matrix</strong> (<em>np.ndarray</em><em> or </em><em>da.Array</em><em>, </em><em>shape</em><em> (</em><em>n_observations</em><em>, </em><em>n_features</em><em>)</em>) – The observation matrix (H) that maps the true state space into the observed space.</p></li>
+<li><p><strong>process_noise_cov</strong> (<em>np.ndarray</em><em> or </em><em>da.Array</em><em>, </em><em>shape</em><em> (</em><em>n_features</em><em>, </em><em>n_features</em><em>)</em>) – Covariance matrix (Q) representing the process noise.</p></li>
+<li><p><strong>observation_noise_cov</strong> (<em>np.ndarray</em><em> or </em><em>da.Array</em><em>, </em><em>shape</em><em> (</em><em>n_observations</em><em>, </em><em>n_observations</em><em>)</em>) – Covariance matrix (R) representing the observation noise.</p></li>
+<li><p><strong>initial_state</strong> (<em>np.ndarray</em><em> or </em><em>da.Array</em><em>, </em><em>shape</em><em> (</em><em>n_features</em><em>,</em><em>)</em>) – Initial state vector (x0) of the system.</p></li>
+<li><p><strong>initial_covariance</strong> (<em>np.ndarray</em><em> or </em><em>da.Array</em><em>, </em><em>shape</em><em> (</em><em>n_features</em><em>, </em><em>n_features</em><em>)</em>) – Initial state covariance matrix (P0), representing initial uncertainty in the state.</p></li>
+<li><p><strong>estimation_strategy</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default=&quot;residual_analysis&quot;</em>) – The strategy for estimating Q and R. Can be one of:
+- “residual_analysis”
+- “mle”
+- “cross_validation”
+- “adaptive_filtering”</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If matrix dimensions do not conform to Kalman Filter requirements.</p>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<p>Welch, G., &amp; Bishop, G. (1995). An Introduction to the Kalman Filter.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="TFilterPy.state_estimation.linear_filters.DaskKalmanFilter.estimate_parameters">
+<span class="sig-name descname"><span class="pre">estimate_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">measurements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference internal" href="_modules/TFilterPy/state_estimation/linear_filters.html#DaskKalmanFilter.estimate_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TFilterPy.state_estimation.linear_filters.DaskKalmanFilter.estimate_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Estimate process (Q) and observation (R) noise covariances using the specified strategy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>measurements</strong> (<em>da.Array</em><em>, </em><em>shape</em><em> (</em><em>n_timesteps</em><em>, </em><em>n_observations</em><em>)</em>) – Observed measurements over time.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>Q</strong> (<em>da.Array, shape (n_features, n_features)</em>) – Estimated process noise covariance matrix.</p></li>
+<li><p><strong>R</strong> (<em>da.Array, shape (n_features, n_features)</em>) – Estimated observation noise covariance matrix.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>This method calls the appropriate estimation strategy from the parent class.</p></li>
+<li><p>The available strategies include residual analysis, MLE, cross-validation,
+and adaptive filtering.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="TFilterPy.state_estimation.linear_filters.DaskKalmanFilter.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#TFilterPy.state_estimation.linear_filters.DaskKalmanFilter" title="TFilterPy.state_estimation.linear_filters.DaskKalmanFilter"><span class="pre">DaskKalmanFilter</span></a></span></span><a class="reference internal" href="_modules/TFilterPy/state_estimation/linear_filters.html#DaskKalmanFilter.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TFilterPy.state_estimation.linear_filters.DaskKalmanFilter.fit" title="Link to this definition">¶</a></dt>
+<dd><p>Prepare the Kalman Filter by storing the measurements as a Dask array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>np.ndarray</em><em> or </em><em>da.Array</em><em>, </em><em>shape</em><em> (</em><em>n_timesteps</em><em>, </em><em>n_observations</em><em>)</em>) – Array of measurements over time.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>self</strong> – The fitted Kalman Filter instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#TFilterPy.state_estimation.linear_filters.DaskKalmanFilter" title="TFilterPy.state_estimation.linear_filters.DaskKalmanFilter">DaskKalmanFilter</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the input measurements are not 2-dimensional.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="TFilterPy.state_estimation.linear_filters.DaskKalmanFilter.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="reference internal" href="_modules/TFilterPy/state_estimation/linear_filters.html#DaskKalmanFilter.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TFilterPy.state_estimation.linear_filters.DaskKalmanFilter.predict" title="Link to this definition">¶</a></dt>
+<dd><p>Perform state estimation over all time steps using the Kalman Filter algorithm.</p>
+<p>This method constructs a Dask computation graph to process the entire measurement
+sequence in parallel using delayed execution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state_estimates</strong> – The estimated state at each time step.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>da.Array, shape (n_timesteps, n_features)</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The Kalman Filter operates in two steps: prediction and update.</p></li>
+<li><p>Predictions are made using the state transition matrix F.</p></li>
+<li><p>Updates are performed using the observation matrix H and Kalman Gain K.</p></li>
+<li><p>This method leverages Dask to parallelize the filter process over multiple time steps.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="TFilterPy.state_estimation.linear_filters.DaskKalmanFilter.run_filter">
+<span class="sig-name descname"><span class="pre">run_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">measurements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference internal" href="_modules/TFilterPy/state_estimation/linear_filters.html#DaskKalmanFilter.run_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TFilterPy.state_estimation.linear_filters.DaskKalmanFilter.run_filter" title="Link to this definition">¶</a></dt>
+<dd><p>Apply the Kalman Filter on measurements to compute state estimates and residuals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>measurements</strong> (<em>da.Array</em><em>, </em><em>shape</em><em> (</em><em>n_timesteps</em><em>, </em><em>n_observations</em><em>)</em>) – Observed measurements over time.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>state_estimates</strong> (<em>da.Array, shape (n_timesteps, n_features)</em>) – Estimated states over the measurement timeline.</p></li>
+<li><p><strong>residuals</strong> (<em>da.Array, shape (n_timesteps, n_observations)</em>) – Difference between observed and predicted measurements (innovations).</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>This function is used by parameter estimation strategies to compute residuals.</p></li>
+<li><p>Residuals are used for adaptive filtering and cross-validation strategies.</p></li>
+</ul>
+</dd></dl>
+
+</dd></dl>
+
 </section>
-<section id="tfilterpy-state-estimation-nonlinear-filters-module">
-<h2>TFilterPy.state_estimation.nonlinear_filters module<a class="headerlink" href="#tfilterpy-state-estimation-nonlinear-filters-module" title="Link to this heading">¶</a></h2>
+<section id="module-TFilterPy.state_estimation.nonlinear_filters">
+<span id="tfilterpy-state-estimation-nonlinear-filters-module"></span><h2>TFilterPy.state_estimation.nonlinear_filters module<a class="headerlink" href="#module-TFilterPy.state_estimation.nonlinear_filters" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="TFilterPy.state_estimation.nonlinear_filters.DaskNonLinearKalmanFilter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">TFilterPy.state_estimation.nonlinear_filters.</span></span><span class="sig-name descname"><span class="pre">DaskNonLinearKalmanFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimation_strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'residual_analysis'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/TFilterPy/state_estimation/nonlinear_filters.html#DaskNonLinearKalmanFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TFilterPy.state_estimation.nonlinear_filters.DaskNonLinearKalmanFilter" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="TFilterPy.utils.html#TFilterPy.utils.optimisation_utils.ParameterEstimator" title="TFilterPy.utils.optimisation_utils.ParameterEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterEstimator</span></code></a></p>
+</dd></dl>
+
 </section>
-<section id="tfilterpy-state-estimation-particle-filters-module">
-<h2>TFilterPy.state_estimation.particle_filters module<a class="headerlink" href="#tfilterpy-state-estimation-particle-filters-module" title="Link to this heading">¶</a></h2>
+<section id="module-TFilterPy.state_estimation.particle_filters">
+<span id="tfilterpy-state-estimation-particle-filters-module"></span><h2>TFilterPy.state_estimation.particle_filters module<a class="headerlink" href="#module-TFilterPy.state_estimation.particle_filters" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="TFilterPy.state_estimation.particle_filters.DaskParticleFilter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">TFilterPy.state_estimation.particle_filters.</span></span><span class="sig-name descname"><span class="pre">DaskParticleFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimation_strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'residual_analysis'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/TFilterPy/state_estimation/particle_filters.html#DaskParticleFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TFilterPy.state_estimation.particle_filters.DaskParticleFilter" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="TFilterPy.utils.html#TFilterPy.utils.optimisation_utils.ParameterEstimator" title="TFilterPy.utils.optimisation_utils.ParameterEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterEstimator</span></code></a></p>
+</dd></dl>
+
 </section>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
+<section id="module-TFilterPy.state_estimation">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-TFilterPy.state_estimation" title="Link to this heading">¶</a></h2>
+<p>State Estimation submodule containing implementations for Kalman Filters,
+Nonlinear Filters, and Particle Filters.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="TFilterPy.state_estimation.DaskKalmanFilter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">TFilterPy.state_estimation.</span></span><span class="sig-name descname"><span class="pre">DaskKalmanFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_transition_matrix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observation_matrix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">process_noise_cov</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observation_noise_cov</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_covariance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimation_strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'residual_analysis'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/TFilterPy/state_estimation/linear_filters.html#DaskKalmanFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TFilterPy.state_estimation.DaskKalmanFilter" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="TFilterPy.utils.html#TFilterPy.utils.optimisation_utils.ParameterEstimator" title="TFilterPy.utils.optimisation_utils.ParameterEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterEstimator</span></code></a></p>
+<p>Dask-based implementation of a Kalman Filter that supports distributed computing for
+large datasets. This class extends the ParameterEstimator to estimate the process
+noise covariance (Q) and observation noise covariance (R) while applying Kalman Filtering
+on incoming measurements.</p>
+<p>The Kalman Filter is a recursive algorithm that estimates the state of a linear dynamic
+system from noisy measurements. This implementation leverages Dask to scale computations
+across distributed systems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state_transition_matrix</strong> (<em>np.ndarray</em><em> or </em><em>da.Array</em><em>, </em><em>shape</em><em> (</em><em>n_features</em><em>, </em><em>n_features</em><em>)</em>) – The state transition matrix (F) representing how the system evolves between states.</p></li>
+<li><p><strong>observation_matrix</strong> (<em>np.ndarray</em><em> or </em><em>da.Array</em><em>, </em><em>shape</em><em> (</em><em>n_observations</em><em>, </em><em>n_features</em><em>)</em>) – The observation matrix (H) that maps the true state space into the observed space.</p></li>
+<li><p><strong>process_noise_cov</strong> (<em>np.ndarray</em><em> or </em><em>da.Array</em><em>, </em><em>shape</em><em> (</em><em>n_features</em><em>, </em><em>n_features</em><em>)</em>) – Covariance matrix (Q) representing the process noise.</p></li>
+<li><p><strong>observation_noise_cov</strong> (<em>np.ndarray</em><em> or </em><em>da.Array</em><em>, </em><em>shape</em><em> (</em><em>n_observations</em><em>, </em><em>n_observations</em><em>)</em>) – Covariance matrix (R) representing the observation noise.</p></li>
+<li><p><strong>initial_state</strong> (<em>np.ndarray</em><em> or </em><em>da.Array</em><em>, </em><em>shape</em><em> (</em><em>n_features</em><em>,</em><em>)</em>) – Initial state vector (x0) of the system.</p></li>
+<li><p><strong>initial_covariance</strong> (<em>np.ndarray</em><em> or </em><em>da.Array</em><em>, </em><em>shape</em><em> (</em><em>n_features</em><em>, </em><em>n_features</em><em>)</em>) – Initial state covariance matrix (P0), representing initial uncertainty in the state.</p></li>
+<li><p><strong>estimation_strategy</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default=&quot;residual_analysis&quot;</em>) – The strategy for estimating Q and R. Can be one of:
+- “residual_analysis”
+- “mle”
+- “cross_validation”
+- “adaptive_filtering”</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If matrix dimensions do not conform to Kalman Filter requirements.</p>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<p>Welch, G., &amp; Bishop, G. (1995). An Introduction to the Kalman Filter.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="TFilterPy.state_estimation.DaskKalmanFilter.estimate_parameters">
+<span class="sig-name descname"><span class="pre">estimate_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">measurements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference internal" href="_modules/TFilterPy/state_estimation/linear_filters.html#DaskKalmanFilter.estimate_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TFilterPy.state_estimation.DaskKalmanFilter.estimate_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Estimate process (Q) and observation (R) noise covariances using the specified strategy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>measurements</strong> (<em>da.Array</em><em>, </em><em>shape</em><em> (</em><em>n_timesteps</em><em>, </em><em>n_observations</em><em>)</em>) – Observed measurements over time.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>Q</strong> (<em>da.Array, shape (n_features, n_features)</em>) – Estimated process noise covariance matrix.</p></li>
+<li><p><strong>R</strong> (<em>da.Array, shape (n_features, n_features)</em>) – Estimated observation noise covariance matrix.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>This method calls the appropriate estimation strategy from the parent class.</p></li>
+<li><p>The available strategies include residual analysis, MLE, cross-validation,
+and adaptive filtering.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="TFilterPy.state_estimation.DaskKalmanFilter.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#TFilterPy.state_estimation.linear_filters.DaskKalmanFilter" title="TFilterPy.state_estimation.linear_filters.DaskKalmanFilter"><span class="pre">DaskKalmanFilter</span></a></span></span><a class="reference internal" href="_modules/TFilterPy/state_estimation/linear_filters.html#DaskKalmanFilter.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TFilterPy.state_estimation.DaskKalmanFilter.fit" title="Link to this definition">¶</a></dt>
+<dd><p>Prepare the Kalman Filter by storing the measurements as a Dask array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>np.ndarray</em><em> or </em><em>da.Array</em><em>, </em><em>shape</em><em> (</em><em>n_timesteps</em><em>, </em><em>n_observations</em><em>)</em>) – Array of measurements over time.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>self</strong> – The fitted Kalman Filter instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#TFilterPy.state_estimation.DaskKalmanFilter" title="TFilterPy.state_estimation.DaskKalmanFilter">DaskKalmanFilter</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the input measurements are not 2-dimensional.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="TFilterPy.state_estimation.DaskKalmanFilter.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Array</span></span></span><a class="reference internal" href="_modules/TFilterPy/state_estimation/linear_filters.html#DaskKalmanFilter.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TFilterPy.state_estimation.DaskKalmanFilter.predict" title="Link to this definition">¶</a></dt>
+<dd><p>Perform state estimation over all time steps using the Kalman Filter algorithm.</p>
+<p>This method constructs a Dask computation graph to process the entire measurement
+sequence in parallel using delayed execution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state_estimates</strong> – The estimated state at each time step.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>da.Array, shape (n_timesteps, n_features)</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The Kalman Filter operates in two steps: prediction and update.</p></li>
+<li><p>Predictions are made using the state transition matrix F.</p></li>
+<li><p>Updates are performed using the observation matrix H and Kalman Gain K.</p></li>
+<li><p>This method leverages Dask to parallelize the filter process over multiple time steps.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="TFilterPy.state_estimation.DaskKalmanFilter.run_filter">
+<span class="sig-name descname"><span class="pre">run_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">measurements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference internal" href="_modules/TFilterPy/state_estimation/linear_filters.html#DaskKalmanFilter.run_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TFilterPy.state_estimation.DaskKalmanFilter.run_filter" title="Link to this definition">¶</a></dt>
+<dd><p>Apply the Kalman Filter on measurements to compute state estimates and residuals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>measurements</strong> (<em>da.Array</em><em>, </em><em>shape</em><em> (</em><em>n_timesteps</em><em>, </em><em>n_observations</em><em>)</em>) – Observed measurements over time.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>state_estimates</strong> (<em>da.Array, shape (n_timesteps, n_features)</em>) – Estimated states over the measurement timeline.</p></li>
+<li><p><strong>residuals</strong> (<em>da.Array, shape (n_timesteps, n_observations)</em>) – Difference between observed and predicted measurements (innovations).</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>This function is used by parameter estimation strategies to compute residuals.</p></li>
+<li><p>Residuals are used for adaptive filtering and cross-validation strategies.</p></li>
+</ul>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="TFilterPy.state_estimation.DaskNonLinearKalmanFilter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">TFilterPy.state_estimation.</span></span><span class="sig-name descname"><span class="pre">DaskNonLinearKalmanFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimation_strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'residual_analysis'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/TFilterPy/state_estimation/nonlinear_filters.html#DaskNonLinearKalmanFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TFilterPy.state_estimation.DaskNonLinearKalmanFilter" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="TFilterPy.utils.html#TFilterPy.utils.optimisation_utils.ParameterEstimator" title="TFilterPy.utils.optimisation_utils.ParameterEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterEstimator</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="TFilterPy.state_estimation.DaskParticleFilter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">TFilterPy.state_estimation.</span></span><span class="sig-name descname"><span class="pre">DaskParticleFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimation_strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'residual_analysis'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/TFilterPy/state_estimation/particle_filters.html#DaskParticleFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TFilterPy.state_estimation.DaskParticleFilter" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="TFilterPy.utils.html#TFilterPy.utils.optimisation_utils.ParameterEstimator" title="TFilterPy.utils.optimisation_utils.ParameterEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterEstimator</span></code></a></p>
+</dd></dl>
+
 </section>
 </section>
 
