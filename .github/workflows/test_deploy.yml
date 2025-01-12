@@ -1,4 +1,4 @@
-name: Test, Build, and Deploy to PyPI
+name: Test, Build, and Deploy to PyPI (Linux only)
 
 on:
   push:
@@ -19,9 +19,8 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest]
         python: ['3.9', '3.10', '3.11', '3.12']
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -41,13 +40,12 @@ jobs:
         run: pytest tests/
 
   build:
-    needs: test  # Wait for the test job to finish
+    needs: test  # Ensure tests complete successfully before building
     if: github.event_name == 'release'
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
         python: ['3.9', '3.10', '3.11', '3.12']
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -81,7 +79,7 @@ jobs:
           path: dist/*.whl dist/*.tar.gz
 
   deploy:
-    needs: build  # Wait for the build job to finish
+    needs: build  # Ensure build completes before deploying
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
