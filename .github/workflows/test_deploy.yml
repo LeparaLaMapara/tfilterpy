@@ -77,6 +77,7 @@ jobs:
         with:
           name: dist-artifacts
           path: dist/*.whl dist/*.tar.gz
+          if-no-files-found: warn
 
   deploy:
     needs: build  # Ensure build completes before deploying
