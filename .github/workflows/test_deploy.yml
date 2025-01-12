@@ -71,6 +71,10 @@ jobs:
         run: |
           python -m build
 
+      - name: Validate Distribution Files
+        run: |
+          twine check dist/*
+
       - name: List dist contents
         run: ls -R dist
 
