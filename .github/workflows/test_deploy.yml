@@ -1,4 +1,4 @@
-name: Publish to PyPI 
+name: test, build and deploy to PYPIP
 
 on:
   push:
@@ -83,7 +83,7 @@ jobs:
       - name: Set Up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.10'
 
       - name: Install Twine
         run: |
