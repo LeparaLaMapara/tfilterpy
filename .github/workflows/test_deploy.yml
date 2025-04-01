@@ -39,57 +39,49 @@ jobs:
       - name: Run Tests
         run: pytest tests/
 
-  build-linux:
-        if: github.event_name == 'release'
-        strategy:
-            matrix:
-              python: ['3.9', '3.10', '3.11', '3.12']
-        runs-on: ubuntu-latest
-        container: quay.io/pypa/manylinux2014_x86_64
-    
-        steps:
-        - uses: actions/checkout@v1
-    
-        - name: Compile c headers
-          run: |
-            /opt/python/${{ matrix.python }}/bin/python setup.py develop
-    
-        - name: Build wheel files
-          run: |
-            /opt/python/${{ matrix.python }}/bin/python setup.py bdist_wheel
-    
-        - name: Install auditwheel
-          run: |
-            /opt/python/${{ matrix.python }}/bin/python -m pip install auditwheel
-        
-        - name: Repair wheel files
-          run: |
-            /opt/python/${{ matrix.python }}/bin/python -m auditwheel repair dist/*${{ matrix.python }}-linux_x86_64.whl
-    
-        - name: List contents of dist
-          run: ls -R dist
-    
-        - name: List contests of wheelhouse
-          run: ls -R wheelhouse
-    
-        - name: Move wheelhouse wheel files to dist
-          run: |
-            rm dist/*
-            mv wheelhouse/* dist/
-            rmdir wheelhouse
-    
-        - name: List contents of dist
-          run: ls -R dist
-    
-        - name: Get the name of the wheel file
-          id: get-wheel-name
-          run: echo "::set-output name=wheel-name::$(ls dist/*.whl)"
-    
-        - name: Archive build artifacts
-          uses: actions/upload-artifact@v1
-          with:
-            name: dist-artifacts-manylinux-${{ matrix.python }}
-            path: ${{ steps.get-wheel-name.outputs.wheel-name }}
+  build:
+    needs: test  # Ensure tests complete successfully before building
+    if: github.event_name == 'release'
+    strategy:
+      matrix:
+        python: ['3.9', '3.10', '3.11', '3.12']
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install Build Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel build twine
+
+      - name: Clean dist directory
+        run: rm -rf dist
+
+      - name: Build Package
+        run: python -m build
+
+      - name: List dist contents
+        run: ls -R dist
+
+      - name: Check for Artifacts
+        run: |
+          if [ ! "$(ls dist/*.whl dist/*.tar.gz)" ]; then
+            echo "No artifacts found!"
+            exit 1
+          fi
+
+      - name: Archive Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-artifacts
+          path: dist/*.whl dist/*.tar.gz
+          if-no-files-found: warn
 
   deploy:
     runs-on: ubuntu-latest
